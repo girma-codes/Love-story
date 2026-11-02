@@ -1,0 +1,5 @@
+import {Router} from 'express'; import pool from '../db.js'; import {requireAdmin} from '../middleware/auth.js';
+const router=Router();
+router.get('/',async(req,res)=>{try{const [rows]=await pool.query('SELECT * FROM site_content WHERE id=1');res.json(rows[0]||{});}catch(e){res.status(500).json({message:'Could not load site content.'});}});
+router.put('/',requireAdmin,async(req,res)=>{try{const b=req.body||{}; const fields=['owner_name','partner_name','headline','love_letter','special_date','secret_message'];for(const f of fields)if(typeof b[f]!=='string' && b[f]!==null && b[f]!==undefined)return res.status(400).json({message:`Invalid field: ${f}`}); await pool.query('UPDATE site_content SET owner_name=?,partner_name=?,headline=?,love_letter=?,special_date=?,secret_message=? WHERE id=1',[b.owner_name||'Your Name',b.partner_name||'My Love',b.headline||'You make my world brighter',b.love_letter||'',b.special_date||null,b.secret_message||'']);const [rows]=await pool.query('SELECT * FROM site_content WHERE id=1');res.json(rows[0]);}catch(e){console.error(e);res.status(500).json({message:'Could not save changes.'});}});
+export default router;
